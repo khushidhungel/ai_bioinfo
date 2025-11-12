@@ -14,22 +14,30 @@ st.set_page_config(page_title="🧬 BioAI Explorer", page_icon="🧬", layout="w
 
 genai_key = None
 try:
-    # safe access (st.secrets raises if no valid TOML found)
+    # Try Streamlit secrets first (nested or flat)
     if "api" in st.secrets and "gemini_key" in st.secrets["api"]:
         genai_key = st.secrets["api"]["gemini_key"]
+    elif "gemini_key" in st.secrets:
+        genai_key = st.secrets["gemini_key"]
+    # Fallback to environment variable
+    elif os.getenv("GEMINI_API_KEY"):
+        genai_key = os.getenv("GEMINI_API_KEY")
+
+    # Show status
+    if genai_key:
         st.info(f"Gemini key found — length={len(genai_key)}; masked={genai_key[:4]}...{genai_key[-4:]}")
         try:
             genai.configure(api_key=genai_key)
             st.success("genai.configure succeeded (key loaded).")
         except Exception as e:
-            st.error("Failed to configure Gemini client: " + str(e))
+            st.error(f"Failed to configure Gemini client: {e}")
             genai_key = None
     else:
-        st.warning("Gemini API key not present in st.secrets.")
-except Exception as e:
-    st.warning("Could not read secrets.toml: " + str(e))
-    genai_key = None
+        st.warning("Gemini API key not found in secrets or environment variables.")
 
+except Exception as e:
+    st.error(f"Error while loading Gemini key: {e}")
+    genai_key = None
 # ==============================
 # LOAD OR INITIALIZE USER DATA
 # ==============================
@@ -227,3 +235,4 @@ else:
         st.session_state.user = None
         st.success("You have been logged out successfully!")
         st.rerun()
+
