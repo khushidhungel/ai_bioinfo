@@ -6,6 +6,7 @@ import google.generativeai as genai
 from streamlit_option_menu import option_menu
 import streamlit_authenticator as stauth
 import time
+import os
 
 # ==============================
 # CONFIGURATION
@@ -235,4 +236,5 @@ else:
         st.session_state.user = None
         st.success("You have been logged out successfully!")
         st.rerun()
+
 
